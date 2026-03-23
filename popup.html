@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Reply Pro Settings</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        
+        /* Loading overlay styling */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(21, 32, 43, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(29, 155, 240, 0.3);
+            border-top: 3px solid #1d9bf0;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+        
+        .loading-text {
+            color: #e7e9ea;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        
+        .loading-progress {
+            width: 200px;
+            height: 4px;
+            background: rgba(29, 155, 240, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .loading-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #1d9bf0, #1a8cd8);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Hide content during loading */
+        .content-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        /* Basic styling to ensure consistent width and font */
+        body {
+            width: 340px;
+            font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        /* Logout button styling */
+        .logout-button {
+            background-color: transparent;
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        
+        .logout-button:hover {
+            background-color: var(--error-color);
+            color: white;
+        }
+    </style>
+</head>
+<body class="popup-body">
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loadingText">Loading settings...</div>
+        <div class="loading-progress">
+            <div class="loading-progress-bar" id="loadingProgressBar"></div>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <div id="mainContent" class="content-hidden">    <!-- Header with Title and Theme Switcher -->
+    <div class="popup-header popup-card always-animate">
+        <button id="logoutButton" class="logout-button">Logout</button>
+        <div>
+            <h1 class="popup-title neon-text">ZeroXyap AI ASSISTANT</h1>
+            <p class="popup-subtitle">Natural Twitter Reply AI</p>
+            <p class="popup-version">v6.0 - Powerful Tools Yapper</p>
+        </div>
+    </div>
+
+    <!-- Theme Toggle Section removed - Dark theme is now default -->
+
+    <!-- NEW: Provider Selector Section -->
+    <div class="popup-section">
+        <label for="apiProvider" class="popup-label">API Provider</label>
+        <div class="select-wrapper">
+            <select id="apiProvider" class="popup-select">
+                <option value="gemini">Gemini</option>
+                <option value="novita">Novita AI</option>
+                <option value="together">Together AI</option>
+                <option value="ollama">Ollama (local)</option>
+                <option value="openai">OpenAI</option>
+                <option value="openrouter">OpenRouter</option>
+                <option value="mistral">Mistral AI</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Backend URL Settings Section -->
+    <div class="popup-section popup-card">
+        <label for="backendUrl" class="popup-label">Backend Server URL</label>
+        <input type="url" id="backendUrl" class="popup-input" placeholder="Backend URL (e.g., http://zeroxyap.sinug.my.id:4444)">
+        <button id="saveBackendUrlButton" class="popup-button">Save Backend URL</button>
+        <p id="backendUrlStatus" class="popup-status"></p>
+        <p class="popup-desc" style="font-size: 12px; opacity: 0.7; margin-top: 5px;">
+            Configure your backend server URL. Leave empty to use default server. Extension reload may be required after changes.
+        </p>
+    </div>
+
+    <!-- API Key Section (Gemini) -->
+    <div class="popup-section" id="geminiSettings">
+        <label for="apiKey" class="popup-label">Gemini API Key</label>
+        <input type="password" id="apiKey" class="popup-input" placeholder="Enter your API key">
+        <button id="saveKeyButton" class="popup-button">Save Key</button>
+        <p id="keyStatus" class="popup-status"></p>
+        
+        <label for="geminiModel" class="popup-label" style="margin-top:10px">Model</label>
+        <div class="model-section">
+            <div class="select-wrapper">
+                <select id="geminiModel" class="popup-select"></select>
+            </div>
+            <button id="addGeminiModelButton" class="popup-icon-button add-btn" title="Add Custom Model" style="margin-left: 8px;">＋</button>
+        </div>
+    </div>
+
+    <!-- Novita AI Settings Section -->
+    <div class="popup-section" id="novitaSettings" style="display:none">
+        <label for="novitaApiKey" class="popup-label">Novita API Key</label>
+        <input type="password" id="novitaApiKey" class="popup-input" placeholder="Enter your Novita AI API key">
+        <button id="saveNovitaKeyButton" class="popup-button">Save Key</button>
+        <p id="novitaKeyStatus" class="popup-status"></p>
+        
+        <label for="novitaModel" class="popup-label" style="margin-top:10px">Model</label>
+        <div class="model-section">
+            <div class="select-wrapper">
+                <select id="novitaModel" class="popup-select"></select>
+            </div>
+            <button id="addNovitaModelButton" class="popup-icon-button add-btn" title="Add Custom Model" style="margin-left: 8px;">＋</button>
+        </div>
+    </div>
+
+    <!-- Together AI Settings Section -->
+    <div class="popup-section" id="togetherSettings" style="display:none">
+        <label for="togetherApiKey" class="popup-label">Together API Key</label>
+        <input type="password" id="togetherApiKey" class="popup-input" placeholder="Enter your Together AI API key">
+        <button id="saveTogetherKeyButton" class="popup-button">Save Key</button>
+        <p id="togetherKeyStatus" class="popup-status"></p>
+        
+        <label for="togetherModel" class="popup-label" style="margin-top:10px">Model</label>
+        <div class="model-section">
+            <div class="select-wrapper">
+                <select id="togetherModel" class="popup-select"></select>
+            </div>
+            <button id="addTogetherModelButton" class="popup-icon-button add-btn" title="Add Custom Model" style="margin-left: 8px;">＋</button>
+        </div>
+    </div>
+
+    <!-- OpenAI Settings Section -->
+    <div class="popup-section" id="openaiSettings" style="display:none">
+        <label for="openaiApiKey" class="popup-label">OpenAI API Key</label>
+        <input type="password" id="openaiApiKey" class="popup-input" placeholder="Enter your OpenAI API key">
+        <button id="saveOpenaiKeyButton" class="popup-button">Save Key</button>
+        <p id="openaiKeyStatus" class="popup-status"></p>
+        <label for="openaiModel" class="popup-label" style="margin-top:10px">Model</label>
+        <div class="model-section">
+            <div class="select-wrapper">
+                <select id="openaiModel" class="popup-select"></select>
+            </div>
+            <button id="addOpenaiModelButton" class="popup-icon-button add-btn" title="Add Custom Model" style="margin-left: 8px;">＋</button>
+        </div>
+    </div>
+
+    <!-- OpenRouter Settings Section -->
+    <div class="popup-section" id="openrouterSettings" style="display:none">
+        <label for="openrouterApiKey" class="popup-label">OpenRouter API Key</label>
+        <input type="password" id="openrouterApiKey" class="popup-input" placeholder="Enter your OpenRouter API key">
+        <button id="saveOpenrouterKeyButton" class="popup-button">Save Key</button>
+        <p id="openrouterKeyStatus" class="popup-status"></p>
+        <label for="openrouterModelCategory" class="popup-label" style="margin-top:10px">Model Category</label>
+        <div class="select-wrapper">
+            <select id="openrouterModelCategory" class="popup-select"></select>
+        </div>
+        <label for="openrouterModel" class="popup-label" style="margin-top:10px">Model</label>
+        <div class="model-section">
+            <div class="select-wrapper">
+                <select id="openrouterModel" class="popup-select"></select>
+            </div>
+            <button id="addOpenrouterModelButton" class="popup-icon-button add-btn" title="Add Custom Model" style="margin-left: 8px;">＋</button>
+        </div>
+    </div>
+
+    <!-- Mistral AI Settings Section -->
+    <div class="popup-section" id="mistralSettings" style="display:none">
+        <label for="mistralApiKey" class="popup-label">Mistral API Key</label>
+        <input type="password" id="mistralApiKey" class="popup-input" placeholder="Enter your Mistral AI API key">
+        <p class="popup-desc" style="font-size: 12px; opacity: 0.7; margin-top: 5px; color: #1d9bf0;">
+            Use API Key: <code style="background: rgba(29, 155, 240, 0.1); padding: 2px 4px; border-radius: 3px; font-family: monospace;">zcxUHG6qTgsf5Otcrkzs9Qzs4hZzl7Fx</code>
+        </p>
+        <button id="saveMistralKeyButton" class="popup-button">Save Key</button>
+        <p id="mistralKeyStatus" class="popup-status"></p>
+        
+        <label for="mistralModel" class="popup-label" style="margin-top:10px">Model</label>
+        <div class="model-section">
+            <div class="select-wrapper">
+                <select id="mistralModel" class="popup-select"></select>
+            </div>
+            <button id="addMistralModelButton" class="popup-icon-button add-btn" title="Add Custom Model" style="margin-left: 8px;">＋</button>
+        </div>
+    </div>
+
+    <!-- Ollama Settings Section -->
+    <div class="popup-section" id="ollamaSettings" style="display:none">
+        <label for="ollamaModel" class="popup-label">Ollama Model</label>
+        <div class="select-wrapper">
+            <select id="ollamaModel" class="popup-select"></select>
+        </div>
+        <div style="display: flex; gap: 6px; margin-top: 6px;">
+            <button id="testOllamaConnection" class="popup-button" style="flex: 1;">Test Connection</button>
+            <button id="refreshModelsButton" class="popup-button" style="flex: 1;">Refresh Models</button>
+        </div>
+        <button id="ollamaHelpButton" class="popup-button" style="margin-top: 6px; width: 100%; background: var(--border); color: var(--text-primary);">📚 Ollama Help</button>
+        <p id="ollamaStatus" class="popup-status"></p>
+    </div>
+
+    <!-- AI Persona Selector Section -->
+    <div class="popup-section">
+        <label for="persona" class="popup-label">AI Persona</label>
+        <div class="select-wrapper">
+            <select id="persona" class="popup-select">
+                <!-- Initially empty, user will add personas -->
+            </select>
+        </div>
+    </div>
+
+    <!-- Master Prompt Selector Section -->
+    <div class="popup-section">
+        <label for="masterPrompt" class="popup-label">Master Prompt</label>
+        <div class="select-wrapper">
+            <select id="masterPrompt" class="popup-select">
+                <!-- Initially empty, user will add master prompts -->
+            </select>
+        </div>
+    </div>
+
+    <!-- NEW: Global Options toggles -->
+    <div class="popup-section popup-card">
+        <h3 class="popup-label" style="margin-bottom:4px">Options</h3>
+        <p class="popup-desc">Quickly enable or disable main features before generating a reply.</p>
+        <div class="toggle-row">
+            <label for="toggleUsePersona">Use Persona</label>
+            <input type="checkbox" id="toggleUsePersona" aria-label="Use Persona">
+        </div>
+        <div class="toggle-row">
+            <label for="toggleUseTone">Use Tone</label>
+            <input type="checkbox" id="toggleUseTone" checked aria-label="Use Tone">
+        </div>
+        <div class="toggle-row">
+            <label for="toggleAutoMention">Auto Mention Author</label>
+            <input type="checkbox" id="toggleAutoMention" checked aria-label="Auto Mention Author">
+        </div>
+        <div class="toggle-row">
+            <label for="toggleTypingAnimation">Typing Animation</label>
+            <input type="checkbox" id="toggleTypingAnimation" checked aria-label="Enable Typing Animation">
+        </div>
+        <!-- Max Character Slider -->
+        <div class="slider-row">
+            <label for="maxCharacters">Max Characters: <span id="maxCharValue">140</span></label>
+            <input type="range" id="maxCharacters" min="50" max="280" value="140" class="popup-slider" aria-label="Maximum Characters">
+        </div>
+        <!-- Typing Speed Slider -->
+        <div class="slider-row">
+            <label for="typingSpeed">Typing Speed: <span id="typingSpeedValue">35ms</span></label>
+            <input type="range" id="typingSpeed" min="10" max="100" value="35" step="5" class="popup-slider" aria-label="Typing Animation Speed">
+            <small class="popup-desc" style="margin-top: 4px; opacity: 0.8;">Lower = Faster, Higher = Slower</small>
+        </div>
+    </div>
+
+    <!-- BEGIN: Custom CRUD Sections -->
+
+    <!-- Tone CRUD Section -->
+    <div class="popup-section popup-card">
+        <div class="section-header">
+            <h3 class="popup-label">Tones</h3>
+            <button id="addToneButton" class="popup-icon-button add-btn" title="Add Tone">＋</button>
+        </div>
+        <p class="popup-desc">Define or edit how the AI should sound when replying.</p>
+        <div id="tonesList" class="popup-list"></div>
+    </div>
+
+    <!-- Active Tones Section -->
+    <div class="popup-section popup-card">
+        <div class="section-header">
+            <h3 class="popup-label">Active Tones</h3>
+        </div>
+        <p class="popup-desc">Select which tones will appear in the tone selector.</p>
+        <div id="activeTonesContainer" class="popup-list"></div>
+    </div>
+
+    <!-- Persona CRUD Section -->
+    <div class="popup-section popup-card">
+        <div class="section-header">
+            <h3 class="popup-label">Personas</h3>
+            <button id="addPersonaButton" class="popup-icon-button add-btn" title="Add Persona">＋</button>
+        </div>
+        <p class="popup-desc">Create distinct personality presets (e.g., sarcastic dev, friendly tutor).</p>
+        <div id="personasList" class="popup-list"></div>
+    </div>
+
+    <!-- Master Prompt CRUD Section -->
+    <div class="popup-section popup-card">
+        <div class="section-header">
+            <h3 class="popup-label">Master Prompts</h3>
+            <button id="addMasterPromptButton" class="popup-icon-button add-btn" title="Add Master Prompt">＋</button>
+        </div>
+        <p class="popup-desc">Advanced instruction templates appended to every generation.</p>
+        <div id="masterPromptsList" class="popup-list"></div>
+    </div>
+
+    <!-- END: Custom CRUD Sections -->
+
+    <!-- Footer -->
+    <div class="popup-footer">
+        Developed by @sinugrepo
+    </div>
+
+    </div> <!-- End of mainContent -->
+
+    <script src="popup.js"></script>
+</body>
+</html>
